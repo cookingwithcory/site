@@ -156,7 +156,9 @@ export function RecipeForm({ recipe }: { recipe?: Recipe }) {
           ))}
         </ul>
         {photos.length < MAX_PHOTOS && (
-          <input name="photos" type="file" accept="image/*" multiple aria-label="Add photos" className="mt-2 block" />
+          <input name="photos" type="file" accept="image/*" multiple aria-label="Add photos"
+            className="mt-2 block file:mr-4 file:rounded-lg file:border-0 file:bg-navy file:px-5 file:py-3 file:text-lg file:font-semibold file:text-white"
+          />
         )}
       </fieldset>
 
