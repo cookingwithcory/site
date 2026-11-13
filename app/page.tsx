@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { matchesSearch } from "@/lib/search";
 import { supabase, type Recipe } from "@/lib/supabase";
 
 const RECENT_COUNT = 12;
@@ -14,11 +15,8 @@ export default function Home({ searchParams }: PageProps<"/">) {
 
 async function Recipes({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   const { q, tag } = await searchParams;
-  // shortcut: loads every matching recipe in one query, add paging past a few hundred recipes
+  // shortcut: loads every recipe and searches in code, move search to SQL and add paging past a few hundred recipes
   let query = supabase.from("recipes").select("*").order("created_at", { ascending: false });
-  if (typeof q === "string" && q) {
-    query = query.ilike("title", `%${q}%`);
-  }
   if (typeof tag === "string" && tag) {
     query = query.contains("tags", [tag]);
   }
@@ -26,7 +24,8 @@ async function Recipes({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   if (error) {
     throw new Error(error.message);
   }
-  const recipes = data as Recipe[];
+  const search = typeof q === "string" ? q : "";
+  const recipes = (data as Recipe[]).filter((recipe) => !search || matchesSearch(recipe, search));
 
   if (q || tag) {
     return <Section title={`${recipes.length} found for "${q || tag}"`} recipes={recipes} />;

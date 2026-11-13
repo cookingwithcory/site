@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { instagramEmbedUrl } from "@/lib/instagram";
 import { supabase, type Recipe } from "@/lib/supabase";
+import { useSignedIn } from "@/lib/useSignedIn";
 
 const MAX_PHOTOS = 2;
 const MAX_PHOTO_PIXELS = 1600;
@@ -43,13 +45,13 @@ export function RecipeForm({ recipe }: { recipe?: Recipe }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const signedIn = useSignedIn();
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/login");
-      }
-    });
-  }, [router]);
+    if (signedIn === false) {
+      router.replace("/login");
+    }
+  }, [signedIn, router]);
 
   async function save(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -57,7 +59,11 @@ export function RecipeForm({ recipe }: { recipe?: Recipe }) {
     setBusy(true);
     setError("");
     try {
-      const files = (form.getAll("photos") as File[]).filter((file) => file.size > 0);
+      const instagramUrl = String(form.get("instagram_url")).trim();
+      if (instagramUrl && !instagramEmbedUrl(instagramUrl)) {
+        throw new Error("That is not an Instagram post or reel link. Copy the link from the video's Share menu.");
+      }
+      const files =(form.getAll("photos") as File[]).filter((file) => file.size > 0);
       const uploaded = await Promise.all(files.slice(0, MAX_PHOTOS - photos.length).map(upload));
       const values = {
         title: String(form.get("title")).trim(),
@@ -68,7 +74,7 @@ export function RecipeForm({ recipe }: { recipe?: Recipe }) {
         cook_minutes: minutes(form.get("cook_minutes")),
         servings: String(form.get("servings")).trim() || null,
         tags: String(form.get("tags")).split(",").map((tag) => tag.trim().toLowerCase()).filter(Boolean),
-        instagram_url: String(form.get("instagram_url")).trim() || null,
+        instagram_url: instagramUrl || null,
         photos: [...photos, ...uploaded],
         favorite: form.get("favorite") === "on",
       };

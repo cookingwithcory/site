@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useSignedIn } from "@/lib/useSignedIn";
 
 /** Footer link: "Sign in" for visitors, "Sign out" for a signed-in user. */
 export function SignInOut() {
   // null until the session check finishes, so neither label flashes.
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
-  }, []);
+  const signedIn = useSignedIn();
 
   async function signOut(): Promise<void> {
     await supabase.auth.signOut();
