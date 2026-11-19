@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Oswald } from "next/font/google";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import { AdminLink } from "@/components/AdminLink";
 import { SignInOut } from "@/components/SignInOut";
 import "./globals.css";
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <SignInOut />
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
